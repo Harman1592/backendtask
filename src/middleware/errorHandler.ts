@@ -16,9 +16,23 @@ export const errorHandler = (
     return;
   }
 
+  const err: any = error;
+
+  // Handle malformed JSON body parsing errors
+  if (err.type === 'entity.parse.failed' || err instanceof SyntaxError) {
+    sendError(res, 'Invalid JSON payload', 400, 'BAD_REQUEST');
+    return;
+  }
+
   // Handle Zod validation errors
-  if (error.name === 'ZodError') {
+  if (err.name === 'ZodError') {
     sendError(res, 'Validation error', 400, 'VALIDATION_ERROR');
+    return;
+  }
+
+  // Handle generic bad request errors from body parser
+  if (err.status === 400 || err.statusCode === 400) {
+    sendError(res, err.message || 'Bad request', 400);
     return;
   }
 
